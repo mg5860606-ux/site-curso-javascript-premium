@@ -61,6 +61,41 @@ async function startServer() {
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
   });
+
+  // Semear administrador mg5860606@gmail.com com a senha gasole96
+  try {
+    const { getDb } = await import("../db");
+    const { users } = await import("../../drizzle/schema");
+    const { hashPassword } = await import("../auth");
+    const { eq } = await import("drizzle-orm");
+
+    const db = await getDb();
+    if (db) {
+      const email = "mg5860606@gmail.com";
+      const password = "gasole96";
+      const name = "Admin Corvo Dev";
+      const passwordHash = hashPassword(password);
+
+      const existing = await db.select().from(users).where(eq(users.email, email)).limit(1);
+      if (existing.length > 0) {
+        await db.update(users)
+          .set({ name, passwordHash, role: "admin", updatedAt: new Date() })
+          .where(eq(users.email, email));
+        console.log(`[Seed] Administrador ${email} atualizado com sucesso!`);
+      } else {
+        await db.insert(users).values({
+          openId: `admin-${Date.now()}`,
+          email,
+          name,
+          passwordHash,
+          role: "admin",
+        });
+        console.log(`[Seed] Novo administrador ${email} cadastrado com sucesso!`);
+      }
+    }
+  } catch (err) {
+    console.error("[Seed] Falha ao semear administrador no boot:", err);
+  }
 }
 
 startServer().catch(console.error);
