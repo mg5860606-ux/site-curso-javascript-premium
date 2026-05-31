@@ -13,6 +13,7 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [, navigate] = useLocation();
   const loginMutation = trpc.auth.login.useMutation();
+  const utils = trpc.useUtils();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,6 +22,7 @@ export default function Login() {
     try {
       const result = await loginMutation.mutateAsync({ email, password });
       if (result.success) {
+        utils.auth.me.setData(undefined, result.user as any);
         // Navegar sem toast para evitar conflito com portal do Sonner
         setTimeout(() => {
           navigate('/dashboard');
